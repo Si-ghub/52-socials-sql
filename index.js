@@ -23,8 +23,9 @@ app.init = async () => {
             [d.getHours(), d.getMinutes(), d.getSeconds()].join(':');
         return dformat;
     }
-
-    console.log(`/ 1 /`);
+    console.log('');
+    console.log(`| 1 |`);
+    console.log('');
     sql = 'SELECT `users`.`id`, `firstname`, \
     COUNT(DISTINCT `posts`.`id`) as posts,\
     COUNT(DISTINCT `comments`.`id`) as comments,\
@@ -46,7 +47,9 @@ app.init = async () => {
         console.log(`${++i}. ${upName(item.firstname)}: posts (${item.posts}), comments (${item.comments}), likes (${item.likes});`);
     };
 
-    console.log(`/ 2 /`);
+    console.log('');
+    console.log(`| 2 |`);
+    console.log('');
     sql = 'SELECT `users`.`firstname`, `posts`.`text`, `posts`.`date` \
     FROM `posts` \
     LEFT JOIN `users` \
@@ -64,10 +67,13 @@ app.init = async () => {
     }
 
 
-    console.log(`/ 3 /`);
+    console.log(`| 3 |`);
+    console.log('');
+    console.log('Not ready yet, too complicated for now');
 
-
-    console.log(`/ 4 /`);
+    console.log('');
+    console.log(`| 4 |`);
+    console.log('');
     sql = 'SELECT `follow_date`,\
                 ( \
                      SELECT `users`.`firstname` \
@@ -88,7 +94,9 @@ app.init = async () => {
         console.log(`${++count}. ${upName(item.me)} is following ${upName(item.you)} (since ${formatDate(item.follow_date)});`);
     }
 
-    console.log(`/ 5 /`);
+    console.log('');
+    console.log(`| 5 |`);
+    console.log('');
     sql = 'SELECT `like_options`.`id`, `like_options`.`text`,\
                     `posts_likes`.`like_option_id`, \
                     COUNT(`posts_likes`.`like_option_id`) as panaudota\
@@ -105,8 +113,9 @@ app.init = async () => {
         console.log(`${++count}. ${text} - ${panaudota} time;`);
     }
 
-
-    console.log(`/ 6 / `);
+    console.log('');
+    console.log(`| 6 | `);
+    console.log('');
     async function searchPost(str) {
         sql = 'SELECT * FROM `comments` WHERE `text` LIKE "%' + str + '%"';
         [rows] = await connection.execute(sql);
@@ -123,8 +132,36 @@ app.init = async () => {
     };
     await searchPost('nice');
     await searchPost('lol');
-}
 
+    console.log('');
+    console.log(`| 7 | `);
+    console.log('');
+    async function postFinder(userID) {
+        sql = 'SELECT `posts`.`text` as text, \
+                `posts`.`date` as time, \
+                `users`.`firstname` as name\
+                FROM `users`\
+                LEFT JOIN `posts`\
+                    ON `users`.`id` = `posts`.`user_id`\
+                WHERE `users`.`id` = '+ userID + '\
+                ORDER BY time DESC \
+                LIMIT 1';
+        [rows] = await connection.execute(sql);
+
+        if (rows.length === 0) {
+            console.error(`Seems like this user doesn't exist yet.`)
+        }
+        else if (rows[0].text) {
+            console.log(`Latest post from ${rows[0].name}:`);
+            console.log(`'${rows[0].text}' ${formatDate(rows[0].time)}.`);
+        }
+        else {
+            console.error(`Seems like ${rows[0].name} hasn't posted yet`);
+        }
+    }
+    await postFinder(1);
+    await postFinder(6);
+}
 app.init();
 
 module.exports = app;
